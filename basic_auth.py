@@ -2,7 +2,7 @@ from flask import Flask, request, Response
 import base64
 
 app = Flask(__name__)
-port = 3000
+port = 4333
 
 @app.route('/')
 def index():
@@ -26,4 +26,4 @@ def index():
         return Response('Unauthorized', 401, {'WWW-Authenticate': 'Basic realm="Ukraine"'})
 
 if __name__ == '__main__':
-    app.run(port=port)
+    app.run(debug=True, port=port)

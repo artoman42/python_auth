@@ -2,13 +2,14 @@ from flask import Flask, request, jsonify, redirect, send_file
 import json
 import uuid
 import jwt
-from datetime import datetime, timedelta
+import datetime
+
 
 app = Flask(__name__)
 
 SECRET_KEY = 'your_secret_key'
 ALGORITHM = 'HS256'  
-TOKEN_EXPIRATION_TIME = 3600 # in seconds
+TOKEN_EXPIRATION_TIME = 10 # in seconds
 
 USERS = [
     {
@@ -37,9 +38,9 @@ class Session:
         self.sessions.pop(session_id, None)
 
 sessions = Session()
-
+# todo expiration // unix time
 def generate_token(username):
-    expiration_time = datetime.utcnow() + timedelta(seconds=TOKEN_EXPIRATION_TIME)
+    expiration_time =  datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(seconds=TOKEN_EXPIRATION_TIME)
     payload = {
         'username': username,
         'exp': expiration_time
@@ -59,6 +60,8 @@ def index():
     token = request.headers.get('Authorization')
     if token:
         decoded_token = decode_token(token)
+        print(token)
+        print(decoded_token)
         if decoded_token:
             username = decoded_token.get('username')
             if username:
