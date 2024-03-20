@@ -5,7 +5,7 @@ import uuid
 import requests
 import os
 import json
-import datetime
+from datetime import datetime, timedelta, timezone
 from dateutil import parser 
 app = Flask(__name__)
 
@@ -65,34 +65,19 @@ sessions = Session()
 @app.route('/', methods=['GET'])
 def index():
     session_id = request.headers.get(SESSION_KEY)
-    # print(f"Session_id - {session_id}")
     if session_id:
-        # print(sessions.get(session_id))
-        # print(session_id)
-        # print(sessions.get(session_id))
-        
-        
-        expires_at = parser.parse(sessions.get(session_id).get('expires_at')).replace(tzinfo=None) #, '%Y-%m-%dT%H:%M:%S.%f%z'
-        print(f"Expires at - {expires_at}")
-        print(f"Now - {datetime.datetime.now()}")
-        print(f"{datetime.datetime.now() < expires_at}")
-        if datetime.datetime.now() > expires_at:
+        expires_at_str = sessions.get(session_id).get('expires_at')
+        expires_at_utc = datetime.fromisoformat(expires_at_str).replace(tzinfo=timezone.utc)
+
+        current_time_utc = datetime.now(timezone.utc)
+
+        if current_time_utc > expires_at_utc:
             print("Session expired")
             return redirect('/login')
-        
-        if (expires_at - datetime.datetime.now()).total_seconds() < 30:
-            print("Refreshing token")
-            refresh_token = get_refresh_token(sessions.get(session_id).get('login'), sessions.get(session_id).get('password'))
-            print(f"Refresh token - {refresh_token}")
-            new_access_token = refresh_access_token(refresh_token)
-            print("Access_token refreshed..")
-            sessions.set(new_access_token['access_token'], {'login': sessions.get(session_id).get('login'),
-                                             'password': sessions.get(session_id).get('password'),
-                                              'expires_at':(datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(seconds=new_access_token['expires_in'])).isoformat()})
-            # print(sessions.get(session_id))
-            # token['login'] = login
-
-            return redirect('/')
+        print(f"Current time UTC - {current_time_utc}")
+        print(f"expires_at_utc - {expires_at_utc}")
+        if (expires_at_utc - current_time_utc).total_seconds() < 45:
+            return 'Need to refresh', 512
 
         username = sessions.get(session_id).get('login')
         if username:
@@ -102,6 +87,24 @@ def index():
             })
     return redirect('/login')
 
+@app.route('/api/refresh_token', methods=['POST'])
+def refresh_token_():
+    data = request.json
+    session_id = data.get('token')
+    print("Refreshing token")
+    _refresh_token = get_refresh_token(sessions.get(session_id).get('login'), sessions.get(session_id).get('password'))
+    print(f"Refresh token - {_refresh_token}")
+    new_access_token = refresh_access_token(_refresh_token)
+    print("Access_token refreshed..")
+    print(new_access_token)
+
+    expires_at_utc = datetime.now(timezone.utc) + timedelta(seconds=new_access_token['expires_in'])
+    sessions.set(new_access_token['access_token'], {
+        'login': sessions.get(session_id).get('login'),
+        'password': sessions.get(session_id).get('password'),
+        'expires_at': expires_at_utc.isoformat()
+    })
+    return jsonify(new_access_token), 200
 @app.route('/login', methods=['GET'])
 def login_page():
     return send_file('index.html')
@@ -124,7 +127,7 @@ def login():
         # session_id = sessions.init()
         sessions.set(token['access_token'], {'login': login,
                                              'password':password,
-                                              'expires_at':(datetime.datetime.now() + datetime.timedelta(seconds=token['expires_in'])).isoformat()})
+                                              'expires_at':(datetime.now(timezone.utc) + timedelta(seconds=token['expires_in'])).isoformat()})
         # print(sessions.get(session_id))
         # token['login'] = login
 

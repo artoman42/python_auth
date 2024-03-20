@@ -129,62 +129,48 @@
             console.log(token);
         } catch(e) {}
 
-        // if (token) {
-        //     // console.log("GGGGGGGGGGG")
-        //     axios.get('/', {
-        //         headers: {
-        //             Authorization: token
-        //         }
-        //     }).then((response) => {
-        //         const { username } = response.data;
-        //         console.log(username)
-        //         if (username) {
-        //             const mainHolder = document.getElementById("main-holder");
-        //             const loginHeader = document.getElementById("login-header");
-
-        //             loginForm.remove();
-        //             loginErrorMsg.remove();
-        //             loginHeader.remove();
-
-        //             mainHolder.append(`Hello ${username}`);
-        //             logoutLink.style.opacity = 1;
-        //         }
-        //     });
-        // }
-
         if (token) {
-            const currentTimeInSeconds = Math.floor(Date.now() / 1000); // Get current time in seconds
+            // console.log("GGGGGGGGGGG")
+            axios.get('/', {
+                headers: {
+                    Authorization: token
+                }
+            }).then((response) => {
+                const { username } = response.data;
+                console.log(username)
+                if (username) {
+                    const mainHolder = document.getElementById("main-holder");
+                    const loginHeader = document.getElementById("login-header");
 
-            // Calculate the expiry time by adding 'expires_in' seconds to the current time
-            const expiryTimeInSeconds = currentTimeInSeconds + token.expires_in;
+                    loginForm.remove();
+                    loginErrorMsg.remove();
+                    loginHeader.remove();
 
-            // Check if the token is not expired
-            if (expiryTimeInSeconds > currentTimeInSeconds) {
-                axios.get('/', {
-                    headers: {
-                        Authorization: token
-                    }
-                }).then((response) => {
-                    const { username } = response.data;
-                    console.log(username)
-                    if (username) {
-                        const mainHolder = document.getElementById("main-holder");
-                        const loginHeader = document.getElementById("login-header");
-
-                        loginForm.remove();
-                        loginErrorMsg.remove();
-                        loginHeader.remove();
-
-                        mainHolder.append(`Hello ${username}`);
-                        logoutLink.style.opacity = 1;
-                    }
-                });
-            } else if (expiryTimeInSeconds - currentTimeInSeconds < 30){
-                console.log('Refreshing token...');
-                
-                // Handle token expiration here, such as refreshing the token or logging the user out
-            }
+                    mainHolder.append(`Hello ${username}`);
+                    logoutLink.style.opacity = 1;
+                }
+            }).catch((error)=>{
+                if (error.response && error.response.status === 512) {
+                    axios({
+                        method: 'post',
+                        url: '/api/refresh_token',
+                        data: {
+                            token
+                        }
+                    }).then((response) => {
+                        const { username } =  response.data;
+                        sessionStorage.setItem('session', JSON.stringify(response.data));
+                        location.reload();
+                    }).catch((response) => {
+                        console.error('Request failed with error:', error);
+                        // loginErrorMsg.style.opacity = 1;
+                    });
+                } else {
+                    console.error('Request failed with error:', error);
+                }
+            });
         }
+
         const loginForm = document.getElementById("login-form");
         const loginButton = document.getElementById("login-form-submit");
         const loginErrorMsg = document.getElementById("login-error-msg");
