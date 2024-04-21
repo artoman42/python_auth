@@ -23,9 +23,8 @@
                 <input type="password" name="password" id="password-field" class="login-form-field" placeholder="Password">
                 <input type="submit" value="Login" id="login-form-submit">
                 <input type="submit" value="Sign Up" id="signup-form-submit">
-                
             </form>
-            <input type="submit" value="Go To Protected" id="go-form-submit">
+
         </main>
     </body>
 
@@ -105,7 +104,7 @@
             padding: 0px 0px 5px 5px;
         }
 
-        #login-form-submit, #signup-form-submit, #go-form-submit {
+        #login-form-submit, #signup-form-submit {
             width: 100%;
             margin:10px;
             padding: 7px;
@@ -117,13 +116,11 @@
             cursor: pointer;
             outline: none;
         }
-        #go-form-submit {
-            width: 45%; 
-        }
     </style>
 
     <script>
         const session = sessionStorage.getItem('session');
+        console.log('SEEEEEEEEESIIIIIIIIIOOOOOOOOOOOOOONNNNNNNNNN----------------------')
         console.log(session);
         let token;
 
@@ -131,7 +128,6 @@
             // console.log("HHHHHHHHHHH")
             token = JSON.parse(session)['access_token'];
             console.log(token);
-            // console.log()
         } catch(e) {}
 
         if (token) {
@@ -161,9 +157,6 @@
                         url: '/api/refresh_token',
                         data: {
                             token
-                        },
-                        headers: {
-                            Authorization: `Bearer ${token}`
                         }
                     }).then((response) => {
                         const { username } =  response.data;
@@ -183,23 +176,13 @@
         const loginButton = document.getElementById("login-form-submit");
         const loginErrorMsg = document.getElementById("login-error-msg");
         const logoutLink =  document.getElementById("logout");
-        const signupButton = document.getElementById("signup-form-submit");
-        const gotoButton = document.getElementById('go-form-submit');
+        const signupButton = document.getElementById("signup-form-submit")
         logoutLink.addEventListener("click", (e) => {
             e.preventDefault();
             sessionStorage.removeItem('session');
-            sessionStorage.removeItem('Authorization')
             location.reload();
         });
-        gotoButton.addEventListener("click", (e) =>{
-            axios.get('/protected/route', {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-        }).then(function (response) {
-            document.documentElement.innerHTML = response.data;
-  })
-    });
+
         loginButton.addEventListener("click", (e) => {
             e.preventDefault();
             const login = loginForm.login.value;
@@ -216,8 +199,6 @@
             }).then((response) => {
                 const { username } =  response.data;
                 sessionStorage.setItem('session', JSON.stringify(response.data));
-
-                sessionStorage.setItem('Authorization', `Bearer ${JSON.stringify(response.data.access_token)}`)
                 location.reload();
             }).catch((response) => {
                 loginErrorMsg.style.opacity = 1;

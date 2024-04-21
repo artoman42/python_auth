@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth0 Example</title>
+</head>
+<body>
+    <main id="main-holder">
+        <h1 id="welcome-header">Welcome, it is protected route!</h1>
+    </main>
+</body>
+<style>
+    html {
+        height: 100%;
+    }
+
+    body {
+        height: 100%;
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        display: grid;
+        justify-items: center;
+        align-items: center;
+        background-color: #3a3a3a;
+    }
+
+    #main-holder {
+        width: 50%;
+        height: 70%;
+        display: grid;
+        justify-items: center;
+        align-items: center;
+        background-color: white;
+        border-radius: 7px;
+        box-shadow: 0px 0px 5px 2px black;
+    }
+
+    #welcome-header {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    #logout {
+        text-decoration: none;
+        color: #3a3a3a;
+        background-color: #e58f8f;
+        padding: 10px 20px;
+        border-radius: 5px;
+    }
+
+    #logout:hover {
+        background-color: #8a0000;
+        color: white;
+    }
+
+    #session-data {
+        margin-top: 20px;
+        border-top: 1px solid #3a3a3a;
+        padding-top: 20px;
+    }
+</style>
+</html>

@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, redirect, send_file
+from flask import Flask, request, jsonify, redirect, send_file, render_template, session
 from json import JSONEncoder
 import json
 import uuid
@@ -33,7 +33,7 @@ validator = Auth0JWTBearerTokenValidator(
 )
 require_auth.register_token_validator(validator)
 app = Flask(__name__)
-
+app.secret_key = get_api_keys_data()["APP_SECRET_KEY"]
 SESSION_KEY = 'Authorization'
 SESSION_FILE = './sessions.json'
 
@@ -117,6 +117,12 @@ def refresh_token_():
         'expires_at': expires_at_utc.isoformat()
     })
     return jsonify(new_access_token), 200
+
+@app.route('/protected/route', methods=['GET'])
+@require_auth(None)
+def protected_route():
+    return render_template("protected.html")
+
 @app.route('/login', methods=['GET'])
 def login_page():
     return send_file('index.html')
@@ -142,7 +148,7 @@ def login():
                                               'expires_at':(datetime.now(timezone.utc) + timedelta(seconds=token['expires_in'])).isoformat()})
         # print(sessions.get(session_id))
         # token['login'] = login
-
+        session['Authorization'] = token['access_token']
         return jsonify(token), 200
 
     return 'Unauthorized', 401
